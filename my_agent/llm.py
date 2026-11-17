@@ -20,6 +20,8 @@ def get_llm(temperature: float = 0):
             base_url=os.environ["HARNESS_INFERENCE_BASE_URL"],
             api_key=os.environ["HARNESS_INFERENCE_API_KEY"],
             temperature=temperature,
+            max_retries=int(os.getenv("LLM_MAX_RETRIES", "8")),  # ride out transient 429/5xx/529 (backoff)
+            timeout=120,
             streaming=True,     # MARS keys the streamed reply off per-token events
             stream_usage=True,  # without this, custom base_urls report zero tokens
         )
