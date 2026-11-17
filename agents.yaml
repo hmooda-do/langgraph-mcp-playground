@@ -1,0 +1,34 @@
+# MARS agent spec.   doctl harness-runtime validate agents.yaml
+#   doctl harness-runtime create agents.yaml --secret HARNESS_INFERENCE_API_KEY=@$HOME/.inference_key
+# Run `python scripts/pin_commit.py` after pushing to fill in repo + repo_sha.
+
+name: langgraph-mcp-playground
+agent: langgraph
+template: langgraph
+size: mars-2vcpu-4gb
+
+langgraph:
+  framework:
+    repo: https://github.com/hmooda-do/langgraph-mcp-playground.git
+    repo_sha: "0000000000000000000000000000000000000000"   # set by scripts/pin_commit.py
+
+env:
+  HARNESS_INFERENCE_BASE_URL: https://inference.do-ai.run/v1
+  HARNESS_INFERENCE_MODEL: anthropic-claude-4.5-sonnet
+
+secrets:
+  HARNESS_INFERENCE_API_KEY:
+    source: tenantSecret
+
+# MCP tools via MARS. Each entry becomes HARNESS_MCP_URL_<NAME>, which my_agent/tools.py picks up.
+tools:
+  - do.actions: [exa_web_search]          # DigitalOcean Action Gateway (managed catalog)
+  # - name: my-remote-mcp                 # any remote MCP server (https only)
+  #   url: https://example.com/mcp
+  #   auth: { header: Authorization, secret: MY_MCP_TOKEN }   # MY_MCP_TOKEN declared under secrets
+
+permissions:
+  default: deny
+  rules:
+    - tool: do.actions/exa_web_search
+      action: allow

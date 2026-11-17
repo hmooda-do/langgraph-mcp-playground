@@ -1,9 +1,9 @@
 """Tiny local MCP server (stdio) so you can test MCP without any external service."""
 from datetime import datetime, timezone
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.mcpserver import MCPServer
 
-mcp = FastMCP("demo")
+mcp = MCPServer("demo")
 
 
 @mcp.tool()

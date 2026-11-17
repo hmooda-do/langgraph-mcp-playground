@@ -4,7 +4,7 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent
 
 
 def load_mcp_config(path: Path = ROOT / "mcp_servers.json") -> dict:

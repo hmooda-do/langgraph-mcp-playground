@@ -1,0 +1,8 @@
+# Installed by MARS at session boot (pip install -r requirements.txt).
+# The langgraph image already ships langgraph-cli[inmem], langgraph and langchain-core.
+langgraph>=0.2
+langchain-core>=0.3
+langchain-openai>=0.2
+langchain-anthropic>=0.3   # only used for local runs with LLM_PROVIDER=anthropic
+python-dotenv>=1.0
+mcp>=2.3   # MCP client; matches langgraph-api in the langgraph image

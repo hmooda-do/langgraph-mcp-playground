@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from langgraph.graph import END, START, StateGraph
 
-from llm import get_llm
+from my_agent.llm import get_llm
 
 llm = get_llm()
 
