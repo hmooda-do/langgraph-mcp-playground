@@ -9,6 +9,7 @@ MCP sources, merged into one tool list:
 """
 from __future__ import annotations
 
+import asyncio
 import os
 from datetime import datetime, timezone
 
@@ -37,15 +38,26 @@ def mars_mcp_servers() -> dict:
     }
 
 
-async def mcp_tools() -> list[BaseTool]:
+async def mcp_tools() -> tuple[list[BaseTool], list[str]]:
+    """Load tools from every MCP server. Returns (tools, names of servers that failed).
+
+    Each server gets a few attempts: on MARS the Action Gateway endpoint can lag the
+    Agent Server's start, and a single failed attempt must not leave the agent tool-less.
+    """
     servers = {**load_mcp_config(), **mars_mcp_servers()}
-    if not servers:
-        return []
     tools: list[BaseTool] = []
-    # Load per server so one unreachable server doesn't take the whole agent down.
+    failed: list[str] = []
     for name, cfg in servers.items():
-        try:
-            tools += await load_tools(cfg)
-        except Exception as e:  # noqa: BLE001
-            print(f"[tools] skipping MCP server {name!r}: {e}")
-    return tools
+        for attempt in range(1, 4):
+            try:
+                loaded = await load_tools(cfg)
+                print(f"[tools] MCP server {name!r}: {len(loaded)} tools")
+                tools += loaded
+                break
+            except Exception as e:  # noqa: BLE001
+                print(f"[tools] MCP server {name!r} attempt {attempt}/3 failed: {e!r}")
+                if attempt == 3:
+                    failed.append(name)
+                else:
+                    await asyncio.sleep(2 * attempt)
+    return tools, failed
