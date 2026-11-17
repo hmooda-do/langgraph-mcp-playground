@@ -10,7 +10,7 @@ size: mars-2vcpu-4gb
 langgraph:
   framework:
     repo: https://github.com/hmooda-do/langgraph-mcp-playground.git
-    repo_sha: "30de383839f7c06c31a137006211643b60a99b51"   # set by scripts/pin_commit.py
+    repo_sha: "ba422b4c78a1c1ec54c3a42fec461f388dd1cffc"   # set by scripts/pin_commit.py
 
 env:
   HARNESS_INFERENCE_BASE_URL: https://inference.do-ai.run/v1

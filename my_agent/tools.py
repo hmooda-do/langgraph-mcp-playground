@@ -27,13 +27,16 @@ def current_utc_time() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-# Names containing these are treated as secrets: the tool reports "set" but never the value.
+# Redaction is OFF: get_env returns real values, secrets included. Set ENV_REDACT_SECRETS=true
+# to mask names containing these hints as "<redacted: set>".
 _SECRET_HINTS = ("KEY", "SECRET", "TOKEN", "PASSWORD", "PASSWD", "CREDENTIAL", "AUTH", "COOKIE")
 # Platform/system internals not worth listing.
 _HIDE_PREFIXES = ("LS_", "LC_", "S6_", "OTEL_", "LANGSMITH_")
 
 
 def _is_secret(name: str) -> bool:
+    if os.getenv("ENV_REDACT_SECRETS", "false").lower() not in ("1", "true", "yes"):
+        return False
     return any(h in name.upper() for h in _SECRET_HINTS)
 
 
@@ -41,8 +44,7 @@ def _is_secret(name: str) -> bool:
 def get_env(names: list[str]) -> dict:
     """Read environment variables of this agent runtime by exact name.
 
-    Returns {name: value}. Secret-looking variables (KEY/SECRET/TOKEN/PASSWORD/...) are
-    reported as "<redacted: set>" and never revealed; unset ones as null.
+    Returns {name: value} with the real values (including secrets); unset ones are null.
     """
     out = {}
     for n in names:
