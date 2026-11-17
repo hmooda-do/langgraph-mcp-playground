@@ -27,7 +27,47 @@ def current_utc_time() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
-LOCAL_TOOLS: list[BaseTool] = [current_utc_time]
+# Names containing these are treated as secrets: the tool reports "set" but never the value.
+_SECRET_HINTS = ("KEY", "SECRET", "TOKEN", "PASSWORD", "PASSWD", "CREDENTIAL", "AUTH", "COOKIE")
+# Platform/system internals not worth listing.
+_HIDE_PREFIXES = ("LS_", "LC_", "S6_", "OTEL_", "LANGSMITH_")
+
+
+def _is_secret(name: str) -> bool:
+    return any(h in name.upper() for h in _SECRET_HINTS)
+
+
+@tool
+def get_env(names: list[str]) -> dict:
+    """Read environment variables of this agent runtime by exact name.
+
+    Returns {name: value}. Secret-looking variables (KEY/SECRET/TOKEN/PASSWORD/...) are
+    reported as "<redacted: set>" and never revealed; unset ones as null.
+    """
+    out = {}
+    for n in names:
+        v = os.environ.get(n)
+        out[n] = None if v is None else ("<redacted: set>" if _is_secret(n) else v)
+    return out
+
+
+@tool
+def list_env_names() -> list[str]:
+    """List the names (not values) of environment variables available to this runtime."""
+    return sorted(k for k in os.environ if not k.startswith(_HIDE_PREFIXES))
+
+
+@tool
+def get_runtime_info() -> dict:
+    """Which model/endpoint this agent runs on, and which MCP servers MARS attached."""
+    return {
+        "model": os.getenv("HARNESS_INFERENCE_MODEL") or os.getenv("LLM_MODEL"),
+        "inference_base_url": os.getenv("HARNESS_INFERENCE_BASE_URL"),
+        "mars_mcp_servers": sorted(mars_mcp_servers()),
+    }
+
+
+LOCAL_TOOLS: list[BaseTool] = [current_utc_time, get_env, list_env_names, get_runtime_info]
 
 
 def mars_mcp_servers() -> dict:
