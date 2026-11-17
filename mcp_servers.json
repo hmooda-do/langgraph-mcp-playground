@@ -1,0 +1,7 @@
+{
+  "demo": {
+    "transport": "stdio",
+    "command": "python",
+    "args": ["servers/demo_server.py"]
+  }
+}
